@@ -1,47 +1,104 @@
+
 # WorkMate AI — Enterprise Productivity & Knowledge Platform
 
 > **"From Information to Action."**  
-> WorkMate AI is an enterprise-grade, AI-powered productivity platform designed to synthesize organizational knowledge, automate workflows, and drive operational decision-making with high-velocity LLM inference powered by the **gemini API**, full document intelligence and grounded RAG citations, and a scalable document store backed by **MongoDB Atlas**.
+> WorkMate AI is an AI-powered enterprise productivity platform designed to synthesize organizational knowledge, automate workflows, and improve operational decision-making using Google Gemini, Firebase Authentication, Cloud Firestore, and Cloud Run as the primary Google Cloud architecture.
 
 ---
 
 ## 1. Platform Architecture & Phases
 
+### Primary Google Cloud Architecture
+
+- **Firebase Authentication:** Manages user sign-in and identity.
+- **Cloud Firestore:** Stores user profiles, conversations, tasks, workflow metadata, and contextual application data.
+- **Google Gemini on Vertex AI:** Powers generative AI, summarization, question answering, document understanding, and reasoning.
+- **Cloud Run:** Hosts and scales containerized backend services and API endpoints.
+- **Vertex AI Search:** Supports semantic enterprise search and knowledge retrieval when configured.
+- **Google Document AI:** Supports structured document extraction when configured.
+- **File Storage:** Uses the configured object-storage provider for uploaded documents and generated reports; Amazon S3 and local storage remain optional alternatives.
+
+> **Implementation note:** Verify that Firebase Authentication, Firestore, Gemini on Vertex AI, and Cloud Run are configured and working before describing them as implemented features.
+
 ### Phase 1: Operational Core & Multi-Tenant Foundation
-- **Application Shell & Enterprise Design System**: Clean light-theme UI designed around professional SaaS principles (#FAFBFC, #FFFFFF, #172B4D, #4F46E5, #0D9488) with responsive sidebar navigation and mobile-friendly layouts.
-- **Multi-Tenant MongoDB Atlas Foundation**: Document-based schema with high-performance collections (`Users`, `Workspaces`, `WorkspaceMemberships`, `Documents`, `DocumentChunks`, `AIConversations`, `AIMessages`, `ActivityLogs`, `Tasks`, `Workflows`).
-- **Multi-Tenant Authentication & Session Management**: Secure credential registration, login, logout, bcrypt password hashing, edge-compatible signed JWT session cookies with `jose`, and server-side workspace authorization.
-- **Dedicated gemini API Service Layer**: Server-side LLM connectivity via official `gemini-sdk`, configurable production model (`openai/gpt-oss-120b`), timeout management, and normalized provider error handling.
-- **File Storage Abstraction**: Pluggable storage layer (`LocalStorageProvider`) isolating large file binaries outside MongoDB documents.
+
+- **Application Shell & Enterprise Design System:** Responsive light-theme UI using professional SaaS design principles (#FAFBFC, #FFFFFF, #172B4D, #4F46E5, #0D9488).
+- **Authentication:** Firebase Authentication is the primary identity provider in the Google Cloud architecture. Server-side authorization protects user and workspace data.
+- **Application Data:** Cloud Firestore is the primary database for user profiles, conversations, tasks, workflows, and contextual records.
+- **Gemini AI Service Layer:** Server-side Gemini on Vertex AI integration for AI-powered workflows, with timeout and error handling.
+- **File Storage Abstraction:** Stores large file binaries separately from application database documents.
+- **Optional MongoDB Atlas Compatibility:** The original MongoDB Atlas/Mongoose data layer remains an optional alternative for compatible deployments.
 
 ### Phase 2: Document Intelligence & Grounded RAG
-- **Universal Multi-Format Ingestion**: Validated uploads for **PDF, DOCX, TXT, and CSV** documents (up to 25MB) with automatic page extraction, layout preservation, and strict workspace isolation.
-- **AI Document Onboarding Agent**: gemini-powered onboarding agent that analyzes document excerpts and user purpose to propose document classification, department ownership, chunking strategy, sensitivity labels, and compliance validation rules.
-- **Human-in-the-Loop Approval Screen**: AI proposals require administrator/user review and approval before vectorization; the AI is strictly prevented from granting or escalating access permissions.
-- **Grounded RAG Knowledge Chat**: Full retrieval-augmented generation engine with source citations and exact page numbers. If documents lack the answer, the engine states so explicitly rather than hallucinating facts.
-- **Hybrid Vector Retrieval with Fallback**: Native MongoDB Atlas `$vectorSearch` integration when configured, with an automatic, zero-configuration workspace-scoped cosine similarity and keyword matching fallback.
-- **Document Intelligence Hub**: Modern document library with status metrics (`READY`, `PENDING`, `PROCESSING`, `FAILED`), search, chunk inspection, and secure file downloads.
+
+- **Multi-Format Ingestion:** Supports PDF, DOCX, TXT, and CSV uploads up to 25MB, with text extraction and workspace isolation.
+- **AI Document Onboarding Agent:** Uses Gemini to suggest document classification, department ownership, chunking strategy, sensitivity labels, and compliance rules.
+- **Human-in-the-Loop Approval:** Requires user or administrator review before indexing; AI must not grant or escalate access permissions.
+- **Grounded RAG Knowledge Chat:** Retrieves relevant information with source citations and page references, acknowledging when evidence is unavailable.
+- **Hybrid Vector Retrieval:** Vertex AI Search is the preferred Google Cloud option when configured. MongoDB Atlas Vector Search and workspace-scoped similarity/keyword search remain optional alternatives.
+- **Document Intelligence Hub:** Provides document search, status metrics, chunk inspection, and secure downloads.
 
 ### Phase 3: AI Data Quality & Preparation Agent
-- **Spreadsheet & Tabular Ingestion**: Support for **CSV and XLSX/XLS** files up to 25MB with automated schema inference and column data type detection (`number`, `date`, `category`, `boolean`, `string`).
-- **Privacy-Safe Deterministic Profiling**: Calculates duplicate rows, column sparsity/null counts, inconsistent dates (e.g. ISO vs US vs UK), inconsistent category casing/values, numeric outliers (via IQR), and an overall Data Quality Health Score (0-100%). Privacy-safe summaries ensure raw confidential rows are never transmitted to external APIs.
-- **Natural Language Cleaning Agent**: gemini-powered AI agent transforms user instructions (e.g. *"Deduplicate rows, standardize all dates to YYYY-MM-DD, and fill missing department with Unknown"*) into structured, deterministic cleaning steps with explicit impact explanations.
-- **Strict Allowlist & Zero-Eval Security**: Transformations execute against a strict server-side allowlist (`remove_duplicates`, `trim_whitespace`, `standardize_text`, `standardize_dates`, `rename_column`, `drop_column`, `fill_missing`, `drop_missing_rows`, `replace_values`, `filter_rows`, `handle_outliers`). Arbitrary code execution or eval is strictly prohibited.
-- **Human-in-the-Loop Approval & Modification**: Interactive review screen allows operators to approve, reject, or fine-tune individual transformation steps before execution.
-- **Immutable Raw Storage & Formatted Exports**: Preserves the original uploaded dataset without modification. Generates cleaned datasets downloadable in both CSV and XLSX formats, alongside full before-and-after audit logs.
+
+- **Spreadsheet Ingestion:** Supports CSV and XLSX/XLS files up to 25MB with schema inference and column type detection.
+- **Data Quality Profiling:** Detects duplicates, missing values, inconsistent dates, category variations, and numeric outliers using IQR; calculates a Data Quality Health Score.
+- **Natural Language Cleaning Agent:** Uses Gemini to translate cleaning instructions into structured, explainable operations.
+- **Safe Transformations:** Uses a strict allowlist of operations such as deduplication, whitespace trimming, date standardization, renaming columns, filling missing values, filtering rows, and handling outliers.
+- **Human Approval:** Allows users to review, approve, reject, or modify transformation steps.
+- **Immutable Raw Storage:** Preserves original datasets and generates cleaned CSV/XLSX exports with before-and-after audit logs.
+
+### Phase 4: Multimodal AI Processing
+
+- **Multimodal Inputs:** Supports processing pipelines for text, documents, images, audio, and video where supported by the selected Gemini model and configured tools.
+- **Document Extraction:** Google Document AI can provide structured extraction when enabled.
+- **Audio/Video Processing:** Uses configured transcription and media-processing services; real-time transcription and speaker diarization should only be claimed when implemented and tested.
+
+### Phase 5: Micro-App Studio
+
+- **Task-Specific Tools:** Creates lightweight, task-focused tools for recurring business requirements.
+- **Controlled Execution:** Uses validated inputs, defined permissions, and execution boundaries for generated tools.
+
+### Phase 6: Meeting Intelligence & Workflow Execution
+
+- **Meeting Summaries:** Converts meeting transcripts or notes into summaries, decisions, and action items.
+- **Approved Workflows:** Supports user-reviewed tasks, follow-ups, and workflow automation.
+- **External Integrations:** Email, calendar, Slack, and Microsoft Teams integrations remain optional until configured.
+
+### Phase 7: Productivity Analytics & Project Risk Insights
+
+- **Productivity Analytics:** Summarizes usage and workflow outcomes where reliable data is available.
+- **Project Risk Insights:** Highlights potential delays and risks based on available project data.
+- **ROI Reporting:** Supports future measurement of time saved and workflow efficiency when measurement data is available.
 
 ---
 
 ## 2. Technology Stack
 
-- **Framework**: Next.js 16 (App Router) with React 19 & TypeScript 5
-- **Styling**: Tailwind CSS v4 with curated design tokens
-- **Icons**: Lucide React
-- **Database / ODM**: MongoDB Atlas with Mongoose 8
-- **Authentication**: Credentials authentication with `bcryptjs` and encrypted JWT tokens via `jose`
-- **AI Provider**: gemini API (`gemini-sdk`)
-- **Validation**: Zod schema validation
-- **Testing**: Node 22 native test runner with `tsx`
+### Primary Stack
+
+- **Frontend:** Next.js 16, React 19, TypeScript 5
+- **Styling:** Tailwind CSS v4
+- **Icons:** Lucide React
+- **Authentication:** Firebase Authentication
+- **Primary Database:** Cloud Firestore
+- **Generative AI:** Google Gemini on Vertex AI
+- **Enterprise Search:** Vertex AI Search, when configured
+- **Document Processing:** Google Document AI, when configured
+- **Backend Hosting:** Google Cloud Run
+- **File Storage:** Configured object storage; Amazon S3 remains an optional provider
+- **Validation:** Zod
+- **Testing:** Node.js test runner with `tsx`
+
+### Optional / Legacy-Compatible Technologies
+
+The following technologies are retained as alternatives for compatible deployments and are not the primary services in the Google Cloud architecture above.
+
+- MongoDB Atlas with Mongoose 8
+- Credentials authentication with `bcryptjs` and signed JWT cookies via `jose`
+- Local file storage using `LocalStorageProvider` and `./uploads`
+- Amazon S3 as an alternative object-storage provider
+- MongoDB Atlas Vector Search and cosine similarity/keyword fallback
+- Docker-based local MongoDB
 
 ---
 
@@ -53,43 +110,95 @@ Copy `.env.example` to create your local `.env`:
 cp .env.example .env
 ```
 
-| Variable | Description | Default / Example |
-| :--- | :--- | :--- |
-| `MONGODB_URI` | MongoDB Atlas cluster connection string | `mongodb+srv://<user>:<pwd>@<cluster>.mongodb.net/?retryWrites=true&w=majority` |
-| `MONGODB_DB` | Database name | `workmate_ai` |
-| `AUTH_SECRET` | Secret key for JWT signing (min 32 chars) | `workmate_ai_super_secret_jwt_encryption_key_32_bytes_min` |
-| `AUTH_COOKIE_NAME` | Session cookie identifier | `workmate_auth_token` |
-| `gemini_API_KEY` | Your gemini Cloud API Key | `gsk_...` (from console.gemini.com) |
-| `gemini_MODEL` | gemini model identifier | `openai/gpt-oss-120b` |
-| `APP_URL` | Base application URL | `http://localhost:3000` |
-| `STORAGE_DRIVER` | Storage provider driver | `local` |
-| `STORAGE_LOCAL_DIR` | Local storage folder path | `./uploads` |
+### Primary Google Cloud Configuration
 
-> **Security Note**: Never commit `.env` or files containing secrets. `.env*` is ignored in Git while `.env.example` remains tracked.
+Use the exact variable names expected by the current application code.
+
+| Variable / Setting | Description | Example |
+|---|---|---|
+| `GOOGLE_CLOUD_PROJECT` | Google Cloud project ID | `your-project-id` |
+| `GOOGLE_CLOUD_LOCATION` | Vertex AI region | `us-central1` |
+| `GEMINI_MODEL` | Supported Gemini model identifier | `gemini-2.5-flash` |
+| `FIREBASE_PROJECT_ID` | Firebase project ID | `your-project-id` |
+| `FIRESTORE_DATABASE_ID` | Firestore database ID, if configured | `(default)` |
+| `APP_URL` | Application base URL | `http://localhost:3000` |
+| `PORT` | Container port for Cloud Run | `8080` |
+
+Configure Google Cloud credentials using Application Default Credentials locally and an appropriate service identity in Cloud Run. Never commit service-account private keys, access tokens, or environment secrets.
+
+### Optional / Legacy MongoDB and Local Storage Variables
+
+Keep these only if the corresponding optional code paths remain enabled.
+
+| Variable | Description | Example |
+|---|---|---|
+| `MONGODB_URI` | MongoDB Atlas connection string | `mongodb+srv://<user>:<pwd>@<cluster>.mongodb.net/?retryWrites=true&w=majority` |
+| `MONGODB_DB` | Database name | `workmate_ai` |
+| `AUTH_SECRET` | JWT signing secret, at least 32 characters | Set a unique local secret |
+| `AUTH_COOKIE_NAME` | Session cookie identifier | `workmate_auth_token` |
+| `gemini_API_KEY` | Legacy provider key variable | Only if expected by the current code |
+| `gemini_MODEL` | Legacy model configuration | Original setup value |
+| `STORAGE_DRIVER` | Optional storage driver | `local` |
+| `STORAGE_LOCAL_DIR` | Local storage directory | `./uploads` |
+
+**Security Note:** Never commit `.env` files or credentials. Keep `.env` ignored by Git and maintain a sanitized `.env.example`.
 
 ---
 
-## 4. Database Setup (MongoDB Atlas)
+## 4. Google Cloud & Firebase Setup
 
-### Option A: MongoDB Atlas (Recommended Cloud Setup)
+### Firebase Authentication
 
-1. Create a free M0 cluster on [MongoDB Atlas](https://www.mongodb.com/cloud/atlas).
-2. Under **Security > Database Access**, create a database user and password.
-3. Under **Security > Network Access**, add your current IP address (or `0.0.0.0/0` for development).
-4. Under **Clusters > Connect > Drivers**, copy the connection string.
-5. In your `.env` file, set:
-   ```env
-   MONGODB_URI="mongodb+srv://<username>:<password>@<cluster>.mongodb.net/?retryWrites=true&w=majority"
-   MONGODB_DB="workmate_ai"
-   ```
+1. Open the [Firebase Console](https://console.firebase.google.com/) and create or select the project.
+2. Enable the sign-in providers supported by the application, such as email/password.
+3. Configure Firebase client settings using the environment variables expected by the code.
+4. Configure server-side token verification and authorization for protected API routes.
+5. Test registration, sign-in, sign-out, session expiry, and unauthorized access.
 
-### Option B: Local Docker MongoDB (Optional)
+### Cloud Firestore
 
-If you have Docker installed and prefer running MongoDB locally:
+1. In the Firebase Console, create or enable a Cloud Firestore database.
+2. Select an appropriate region and configure security rules.
+3. Scope user records to the authenticated user and workspace.
+4. Enforce authorization on the server; do not rely solely on client-side checks.
+5. Test read/write permissions and cross-user access restrictions.
+
+### Gemini on Vertex AI
+
+1. Select the correct Google Cloud project and enable the Vertex AI API.
+2. Choose a supported Gemini model and region.
+3. Configure Application Default Credentials for local development.
+4. Attach a least-privilege service account to Cloud Run with the required Vertex AI permissions.
+5. Test prompt handling, timeouts, errors, and grounded responses.
+
+### Cloud Run Deployment
+
+1. Ensure the application has a production build and working start command.
+2. Containerize the application if required by the selected deployment method.
+3. Deploy to Cloud Run and configure the required environment variables.
+4. Assign a runtime service account with only the necessary permissions.
+5. Test health checks, authentication, Firestore access, Gemini calls, uploads, and downloads.
+
+### Optional MongoDB Atlas Setup
+
+MongoDB Atlas remains available as an alternative for deployments using the original MongoDB-backed implementation.
+
+1. Create a cluster on [MongoDB Atlas](https://www.mongodb.com/cloud/atlas).
+2. Under **Security > Database Access**, create a database user.
+3. Under **Security > Network Access**, allow the required IP addresses.
+4. Copy the driver connection string.
+5. Set `MONGODB_URI` and `MONGODB_DB` only if the optional MongoDB implementation is enabled.
+
+### Optional Local Docker MongoDB
+
+If the legacy MongoDB path is still used and Docker is installed:
+
 ```bash
 docker compose up -d
 ```
-Set in `.env`:
+
+Set in `.env` if needed:
+
 ```env
 MONGODB_URI="mongodb://localhost:27017"
 MONGODB_DB="workmate_ai"
@@ -100,33 +209,45 @@ MONGODB_DB="workmate_ai"
 ## 5. Development & Running the Application
 
 ### 1. Install Dependencies
+
 ```bash
 npm install
 ```
 
-### 2. Start the Development Server
+### 2. Configure Environment
+
+Create `.env` from `.env.example` and add the Firebase, Firestore, Gemini/Vertex AI, and other values required by the current code. Never add secrets to source control.
+
+### 3. Start the Development Server
+
 ```bash
 npm run dev
 ```
-Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-### 3. Run Automated Tests
+Open [http://localhost:3000](http://localhost:3000).
+
+### 4. Run Automated Tests
+
 ```bash
 npm test
 ```
-Executes unit and integration test suites covering auth validation, session security, gemini key detection, error normalization, multi-tenant boundaries, and dashboard metrics.
 
-### 4. Run TypeScript Check
+Run the available unit and integration tests. Coverage depends on the current test suite and may include authentication, session security, AI provider errors, workspace boundaries, and dashboard metrics.
+
+### 5. Run TypeScript Check
+
 ```bash
 npx tsc --noEmit
 ```
 
-### 5. Run Linter
+### 6. Run Linter
+
 ```bash
 npm run lint
 ```
 
-### 6. Build for Production
+### 7. Build for Production
+
 ```bash
 npm run build
 npm run start
@@ -136,41 +257,50 @@ npm run start
 
 ## 6. API Endpoints Reference
 
-### Authentication
-- `POST /api/auth/register` — Registers user, creates workspace, associates owner membership, sets HTTP-only session cookie.
-- `POST /api/auth/login` — Verifies email and hashed password, creates signed JWT session token.
-- `POST /api/auth/logout` — Clears authentication cookie.
-- `GET /api/auth/me` — Returns current authenticated user and workspace session details.
+> The following endpoints are preserved from the original README. Verify them against the current code after migrating to Firebase Authentication and Firestore; endpoint names and persistence behavior may differ.
 
-### AI Knowledge (gemini Engine)
-- `POST /api/ai/chat` — Authenticated chat endpoint: loads context, calls gemini API, saves conversation history to MongoDB `AIMessages` collection, and records audit logs.
-- `GET /api/ai/conversations` — Retrieves conversation list for the active user within their workspace.
-- `GET /api/ai/conversations/[id]` — Retrieves specific conversation history with full message thread.
+### Authentication
+
+- `POST /api/auth/register` — Original registration endpoint for creating a user and workspace.
+- `POST /api/auth/login` — Original credential verification and JWT session creation.
+- `POST /api/auth/logout` — Clears the original authentication cookie.
+- `GET /api/auth/me` — Returns the authenticated user and workspace session details in the original implementation.
+
+### AI Knowledge
+
+- `POST /api/ai/chat` — Authenticated chat endpoint that loads context, calls the configured AI provider, saves conversation history, and records audit logs.
+- `GET /api/ai/conversations` — Retrieves conversations for the active user and workspace.
+- `GET /api/ai/conversations/[id]` — Retrieves a specific conversation and its message history.
 - `DELETE /api/ai/conversations/[id]` — Deletes a conversation and its messages.
 
-### Document Intelligence & RAG (Phase 2)
-- `POST /api/documents/upload` — Multipart file upload (PDF, DOCX, TXT, CSV), size & MIME validation, storage isolation, initial text extraction, and gemini onboarding suggestion.
-- `GET /api/documents` — Lists workspace documents with search, status filters (`READY`, `PENDING`, `PROCESSING`, `FAILED`), and metrics.
-- `GET /api/documents/[id]` — Returns metadata, page counts, chunk stats, and text preview for a document.
-- `DELETE /api/documents/[id]` — Deletes physical storage file, cascading deletion of all associated MongoDB `DocumentChunks` and `Document` records.
-- `POST /api/documents/[id]/onboard` — Re-triggers AI Onboarding Agent analysis for customized objectives.
-- `POST /api/documents/[id]/onboard/approve` — Server-validated approval of onboarding configuration, initiates page chunking and vector embedding generation, sets status to `READY`.
-- `GET /api/documents/[id]/chunks` — Retrieves preview of indexed vector chunks with page numbers and token counts.
-- `GET /api/documents/[id]/download` — Secure workspace-isolated document file download.
-- `POST /api/ai/chat` — Unified assistant endpoint supporting both `mode: "general"` and `mode: "rag"` with citations and document filtering.
+### Document Intelligence & RAG
+
+- `POST /api/documents/upload` — Uploads PDF, DOCX, TXT, and CSV files with validation, storage isolation, text extraction, and AI onboarding.
+- `GET /api/documents` — Lists workspace documents, status filters, and metrics.
+- `GET /api/documents/[id]` — Returns metadata, page counts, chunk statistics, and text preview.
+- `DELETE /api/documents/[id]` — Deletes the stored file and associated records according to the active storage/database provider.
+- `POST /api/documents/[id]/onboard` — Re-runs AI onboarding analysis.
+- `POST /api/documents/[id]/onboard/approve` — Approves onboarding configuration and starts indexing where configured.
+- `GET /api/documents/[id]/chunks` — Retrieves indexed chunk previews.
+- `GET /api/documents/[id]/download` — Provides secure workspace-isolated downloads.
+- `POST /api/ai/chat` — Supports general chat and RAG modes with citations and document filtering where configured.
 
 ---
 
-## 7. MongoDB Atlas Vector Search Setup (Optional)
+## 7. Optional MongoDB Atlas Vector Search Setup
 
-WorkMate AI features an automatic **Hybrid Vector Search Engine**. If running locally or without an Atlas Vector Search index, it operates transparently using an in-memory workspace-scoped cosine similarity and keyword matching engine.
+The preferred Google Cloud search option is **Vertex AI Search**, when configured. This section is retained for deployments using the original MongoDB Atlas implementation.
 
-To enable native **MongoDB Atlas Vector Search** on your cluster:
-1. In the MongoDB Atlas Console, navigate to your cluster > **Atlas Search / Vector Search**.
-2. Click **Create Index** > Select **Atlas Vector Search (JSON Editor)**.
-3. Select Database: `workmate_ai`, Collection: `DocumentChunks`.
-4. Name the index `vector_index` (or matching `MONGODB_VECTOR_INDEX` in `.env`).
+Without an Atlas Vector Search index, the original implementation can use workspace-scoped cosine similarity and keyword matching.
+
+To enable MongoDB Atlas Vector Search:
+
+1. Open your MongoDB Atlas cluster and navigate to **Atlas Search / Vector Search**.
+2. Select **Create Index > Atlas Vector Search (JSON Editor)**.
+3. Select database `workmate_ai` and collection `DocumentChunks`.
+4. Name the index `vector_index`, or match `MONGODB_VECTOR_INDEX` in `.env`.
 5. Use this index definition:
+
 ```json
 {
   "fields": [
@@ -196,10 +326,49 @@ To enable native **MongoDB Atlas Vector Search** on your cluster:
 
 ## 8. Scope Boundaries & Roadmap
 
-- **Phase 1 (Completed ✅)**: Core architecture, authentication, MongoDB Atlas models, gemini API service, AI Knowledge chat, Overview dashboard, Settings diagnostics, and responsive application shell.
-- **Phase 2 (Completed ✅)**: Document Intelligence, multi-format file ingestion (PDF, DOCX, TXT, CSV), AI Document Onboarding Agent with human-in-the-loop review, vector chunking with page preservation, and Grounded RAG Knowledge Chat with source citations.
-- **Phase 3 (Upcoming)**: Unstructured Data Preparation and interactive cleaning pipelines.
-- **Phase 4 (Upcoming)**: Meeting Intelligence, audio transcription, speaker diarization, and timestamped retrieval.
-- **Phase 5 (Upcoming)**: Micro-App Studio (on-demand prompt-to-tool creation).
-- **Phase 6 (Upcoming)**: Tasks & Approved Workflows automation.
-- **Phase 7 (Upcoming)**: Productivity Analytics & quantifiable ROI reporting.
+- **Phase 1 — Core Foundation:** Application architecture, authentication, database integration, AI service integration, knowledge chat, dashboard, settings, and responsive application shell.
+- **Phase 2 — Document Intelligence & Grounded RAG:** Multi-format ingestion, human-reviewed onboarding, document chunking, indexing, and source-cited knowledge chat.
+- **Phase 3 — Data Quality & Preparation:** Spreadsheet profiling, cleaning pipelines, and interactive transformation approval.
+- **Phase 4 — Multimodal Processing:** Document and image understanding, plus configured audio/video processing.
+- **Phase 5 — Micro-App Studio:** On-demand prompt-to-tool creation with controlled execution.
+- **Phase 6 — Meeting Intelligence & Workflow Automation:** Meeting summaries, tasks, approved workflows, and follow-ups.
+- **Phase 7 — Productivity Analytics & Project Risk Insights:** Productivity reporting, risk indicators, and ROI measurement where supported by available data.
+
+---
+
+## 9. Security & Responsible AI
+
+- **Least-Privilege Access:** Grant each service only the permissions it requires.
+- **Authentication and Authorization:** Validate identity and enforce user/workspace boundaries server-side.
+- **Data Protection:** Keep credentials and tokens out of source control; configure secure transport and storage.
+- **Grounded Responses:** Use retrieved sources for knowledge answers and indicate when supporting evidence is unavailable.
+- **Human Review:** Require approval for sensitive onboarding decisions and impactful workflow actions.
+- **Safe Automation:** Validate inputs and restrict tool execution to explicitly approved operations.
+- **Privacy-Aware Processing:** Minimize external transmission of confidential data and avoid sending raw sensitive rows when summaries are sufficient.
+
+---
+
+## 10. Google Services Used in the Primary Architecture
+
+- **Firebase Authentication:** User identity and sign-in.
+- **Cloud Firestore:** Application records and contextual data.
+- **Google Gemini on Vertex AI:** Generative AI, summarization, reasoning, and supported multimodal understanding.
+- **Cloud Run:** Backend hosting and scaling.
+- **Vertex AI Search:** Semantic enterprise search and knowledge retrieval, when configured.
+- **Document AI:** Structured document extraction, when configured.
+
+Describe these services as active integrations only after they are configured and verified in the code and deployed environment.
+
+---
+
+## 11. Original Optional Components Preserved
+
+The following components remain documented for backwards compatibility and can be used if the corresponding code paths are still required:
+
+- MongoDB Atlas with Mongoose 8 and original collections (`Users`, `Workspaces`, `WorkspaceMemberships`, `Documents`, `DocumentChunks`, `AIConversations`, `AIMessages`, `ActivityLogs`, `Tasks`, `Workflows`).
+- Credentials authentication with `bcryptjs`, signed JWT session cookies with `jose`, and original authentication endpoints.
+- Local file storage via `LocalStorageProvider` and `./uploads`.
+- Amazon S3 as an alternative object-storage provider.
+- MongoDB Atlas Vector Search and cosine similarity/keyword fallback.
+- Local Docker MongoDB for development.
+- Original environment variables and API endpoint references where supported by the current code.
